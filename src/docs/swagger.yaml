@@ -1,0 +1,1130 @@
+openapi: 3.0.0
+info:
+  title: API Mocks Pets - Documentación
+  description: API para gestión de usuarios, mascotas y adopciones
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@apimockspets.com
+
+servers:
+  - url: http://localhost:8080/api
+    description: Servidor de desarrollo
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: ID único del usuario
+        first_name:
+          type: string
+          description: Nombre del usuario
+        last_name:
+          type: string
+          description: Apellido del usuario
+        email:
+          type: string
+          format: email
+          description: Email del usuario
+        password:
+          type: string
+          format: password
+          description: Contraseña hasheada del usuario
+        role:
+          type: string
+          enum: [user, admin]
+          description: Rol del usuario
+        pets:
+          type: array
+          items:
+            type: string
+          description: Array de IDs de mascotas del usuario
+      example:
+        _id: "507f1f77bcf86cd799439011"
+        first_name: "Juan"
+        last_name: "Pérez"
+        email: "juan@example.com"
+        role: "user"
+        pets: []
+
+    UserInput:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - email
+        - password
+      properties:
+        first_name:
+          type: string
+          description: Nombre del usuario
+        last_name:
+          type: string
+          description: Apellido del usuario
+        email:
+          type: string
+          format: email
+          description: Email del usuario
+        password:
+          type: string
+          format: password
+          description: Contraseña del usuario
+      example:
+        first_name: "Juan"
+        last_name: "Pérez"
+        email: "juan@example.com"
+        password: "123456"
+
+    LoginInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email del usuario
+        password:
+          type: string
+          format: password
+          description: Contraseña del usuario
+      example:
+        email: "juan@example.com"
+        password: "123456"
+
+    SuccessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        payload:
+          type: object
+          description: Datos de respuesta
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        error:
+          type: string
+          description: Mensaje de error
+
+    Pet:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: ID único de la mascota
+        name:
+          type: string
+          description: Nombre de la mascota
+        specie:
+          type: string
+          description: Especie de la mascota (dog, cat, rabbit, bird, hamster, parrot)
+        birthDate:
+          type: string
+          format: date-time
+          description: Fecha de nacimiento de la mascota
+        image:
+          type: string
+          description: URL de la imagen de la mascota
+        adopted:
+          type: boolean
+          description: Estado de adopción
+      example:
+        _id: "507f1f77bcf86cd799439012"
+        name: "Max"
+        specie: "dog"
+        birthDate: "2020-03-15T00:00:00Z"
+        image: "/img/max.jpg"
+        adopted: false
+
+    PetInput:
+      type: object
+      required:
+        - name
+        - specie
+        - birthDate
+      properties:
+        name:
+          type: string
+          description: Nombre de la mascota
+        specie:
+          type: string
+          description: Especie de la mascota
+        birthDate:
+          type: string
+          format: date-time
+          description: Fecha de nacimiento de la mascota
+      example:
+        name: "Max"
+        specie: "dog"
+        birthDate: "2020-03-15T00:00:00Z"
+
+    Adoption:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: ID único de la adopción
+        owner:
+          type: string
+          description: ID del propietario (usuario)
+        pet:
+          type: string
+          description: ID de la mascota
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha de creación de la adopción
+      example:
+        _id: "507f1f77bcf86cd799439013"
+        owner: "507f1f77bcf86cd799439011"
+        pet: "507f1f77bcf86cd799439012"
+        createdAt: "2024-02-01T10:30:00Z"
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: coderCookie
+
+paths:
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Obtener todos los usuarios
+      description: Retorna una lista con todos los usuarios registrados en el sistema
+      responses:
+        200:
+          description: Lista de usuarios obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+              example:
+                status: "success"
+                payload:
+                  - _id: "507f1f77bcf86cd799439011"
+                    first_name: "Juan"
+                    last_name: "Pérez"
+                    email: "juan@example.com"
+                    role: "user"
+                    pets: []
+                  - _id: "507f1f77bcf86cd799439012"
+                    first_name: "María"
+                    last_name: "González"
+                    email: "maria@example.com"
+                    role: "admin"
+                    pets: []
+
+  /users/{uid}:
+    get:
+      tags:
+        - Users
+      summary: Obtener un usuario por ID
+      description: Retorna la información de un usuario específico
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: string
+      responses:
+        200:
+          description: Usuario encontrado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    $ref: '#/components/schemas/User'
+              example:
+                status: "success"
+                payload:
+                  _id: "507f1f77bcf86cd799439011"
+                  first_name: "Juan"
+                  last_name: "Pérez"
+                  email: "juan@example.com"
+                  role: "user"
+                  pets: []
+        400:
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Invalid user ID format"
+        404:
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "User not found"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Users
+      summary: Actualizar un usuario
+      description: Actualiza la información de un usuario existente
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          description: ID del usuario a actualizar
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+              example:
+                first_name: "Juan Carlos"
+                last_name: "Pérez"
+      responses:
+        200:
+          description: Usuario actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "User updated"
+              example:
+                status: "success"
+                message: "User updated"
+        400:
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Invalid user ID format"
+        404:
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "User not found"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Users
+      summary: Eliminar un usuario
+      description: Elimina un usuario del sistema
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          description: ID del usuario a eliminar
+          schema:
+            type: string
+      responses:
+        200:
+          description: Usuario eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "User deleted"
+              example:
+                status: "success"
+                message: "User deleted"
+        400:
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Invalid user ID format"
+        404:
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "User not found"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sessions/register:
+    post:
+      tags:
+        - Sessions
+      summary: Registrar un nuevo usuario
+      description: Crea un nuevo usuario en el sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        200:
+          description: Usuario registrado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: string
+                    description: ID del usuario creado
+                    example: "507f1f77bcf86cd799439011"
+        400:
+          description: Error en el registro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                incomplete:
+                  value:
+                    status: "error"
+                    error: "Incomplete values"
+                exists:
+                  value:
+                    status: "error"
+                    error: "User already exists"
+
+  /sessions/login:
+    post:
+      tags:
+        - Sessions
+      summary: Iniciar sesión
+      description: Autentica un usuario y genera un token en una cookie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        200:
+          description: Inicio de sesión exitoso
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: coderCookie=token; Max-Age=3600000
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Logged in"
+        400:
+          description: Error en el inicio de sesión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                incomplete:
+                  value:
+                    status: "error"
+                    error: "Incomplete values"
+                wrongPassword:
+                  value:
+                    status: "error"
+                    error: "Incorrect password"
+        404:
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "User doesn't exist"
+
+  /sessions/current:
+    get:
+      tags:
+        - Sessions
+      summary: Obtener usuario actual (protegido)
+      description: Retorna la información del usuario autenticado mediante el token en la cookie
+      security:
+        - cookieAuth: []
+      responses:
+        200:
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: object
+                    description: Información del usuario (DTO)
+
+  /sessions/unprotectedLogin:
+    get:
+      tags:
+        - Sessions
+      summary: Iniciar sesión sin protección (desprotegido)
+      description: Autentica un usuario sin las protecciones estándar y genera un token en una cookie diferente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        200:
+          description: Inicio de sesión exitoso
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: unprotectedCookie=token; Max-Age=3600000
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Unprotected Logged in"
+        400:
+          description: Error en el inicio de sesión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sessions/unprotectedCurrent:
+    get:
+      tags:
+        - Sessions
+      summary: Obtener usuario actual sin protección
+      description: Retorna la información del usuario autenticado mediante el token en la cookie desprotegida
+      responses:
+        200:
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: object
+                    description: Información completa del usuario
+
+  /pets:
+    get:
+      tags:
+        - Pets
+      summary: Obtener todas las mascotas
+      description: Retorna una lista con todas las mascotas registradas en el sistema
+      responses:
+        200:
+          description: Lista de mascotas obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pet'
+              example:
+                status: "success"
+                payload:
+                  - _id: "507f1f77bcf86cd799439012"
+                    name: "Max"
+                    specie: "dog"
+                    birthDate: "2020-03-15T00:00:00Z"
+                    adopted: false
+                  - _id: "507f1f77bcf86cd799439013"
+                    name: "Misifu"
+                    specie: "cat"
+                    birthDate: "2021-01-10T00:00:00Z"
+                    adopted: false
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Pets
+      summary: Crear una nueva mascota
+      description: Crea una nueva mascota en el sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetInput'
+      responses:
+        200:
+          description: Mascota creada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    $ref: '#/components/schemas/Pet'
+              example:
+                status: "success"
+                payload:
+                  _id: "507f1f77bcf86cd799439014"
+                  name: "Firulais"
+                  specie: "dog"
+                  birthDate: "2020-03-15T00:00:00Z"
+                  adopted: false
+        400:
+          description: Valores incompletos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Incomplete values"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /pets/{pid}:
+    get:
+      tags:
+        - Pets
+      summary: Obtener una mascota por ID
+      description: Retorna la información de una mascota específica
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          description: ID de la mascota
+          schema:
+            type: string
+      responses:
+        200:
+          description: Mascota encontrada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    $ref: '#/components/schemas/Pet'
+              example:
+                status: "success"
+                payload:
+                  _id: "507f1f77bcf86cd799439012"
+                  name: "Max"
+                  specie: "dog"
+                  birthDate: "2020-03-15T00:00:00Z"
+                  adopted: false
+        400:
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Invalid pet ID format"
+        404:
+          description: Mascota no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Pet not found"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Pets
+      summary: Actualizar una mascota
+      description: Actualiza la información de una mascota existente
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          description: ID de la mascota a actualizar
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PetInput'
+      responses:
+        200:
+          description: Mascota actualizada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "pet updated"
+              example:
+                status: "success"
+                message: "pet updated"
+        400:
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Invalid pet ID format"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Pets
+      summary: Eliminar una mascota
+      description: Elimina una mascota del sistema
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          description: ID de la mascota a eliminar
+          schema:
+            type: string
+      responses:
+        200:
+          description: Mascota eliminada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "pet deleted"
+              example:
+                status: "success"
+                message: "pet deleted"
+        400:
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Invalid pet ID format"
+        404:
+          description: Mascota no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Pet not found"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /mocks/mockingpets:
+    get:
+      tags:
+        - Mocks
+      summary: Generar mascotas ficticias
+      description: Genera un array de 100 mascotas de prueba con datos aleatorios
+      responses:
+        200:
+          description: Mascotas ficticias generadas exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pet'
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /mocks/mockingusers:
+    get:
+      tags:
+        - Mocks
+      summary: Generar usuarios ficticios
+      description: Genera usuarios de prueba con datos aleatorios usando Faker
+      parameters:
+        - name: quantity
+          in: query
+          required: false
+          description: Cantidad de usuarios a generar (por defecto 50)
+          schema:
+            type: integer
+            default: 50
+            example: 50
+      responses:
+        200:
+          description: Usuarios ficticios generados exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /mocks/generateData:
+    post:
+      tags:
+        - Mocks
+      summary: Generar datos completos de prueba
+      description: Genera tanto usuarios como mascotas ficticias en una sola petición
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - users
+                - pets
+              properties:
+                users:
+                  type: integer
+                  description: Cantidad de usuarios a generar
+                  example: 10
+                pets:
+                  type: integer
+                  description: Cantidad de mascotas a generar
+                  example: 15
+      responses:
+        200:
+          description: Datos de prueba generados exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Generated 10 users and 15 pets"
+                  payload:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      pets:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Pet'
+        400:
+          description: Parámetros incompletos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Missing users or pets parameters"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /adoptions:
+    get:
+      tags:
+        - Adoptions
+      summary: Obtener todas las adopciones
+      description: Recupera la lista completa de todas las adopciones registradas
+      responses:
+        200:
+          description: Lista de adopciones obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Adoption'
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /adoptions/{aid}:
+    get:
+      tags:
+        - Adoptions
+      summary: Obtener adopción por ID
+      description: Recupera los detalles de una adopción específica
+      parameters:
+        - name: aid
+          in: path
+          required: true
+          description: ID de la adopción
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439013"
+      responses:
+        200:
+          description: Adopción encontrada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    $ref: '#/components/schemas/Adoption'
+        400:
+          description: ID de adopción inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Invalid adoption ID format"
+        404:
+          description: Adopción no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Adoption not found"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /adoptions/{uid}/{pid}:
+    post:
+      tags:
+        - Adoptions
+      summary: Crear adopción
+      description: Registra la adopción de una mascota por parte de un usuario
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          description: ID del usuario
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439011"
+        - name: pid
+          in: path
+          required: true
+          description: ID de la mascota
+          schema:
+            type: string
+            example: "507f1f77bcf86cd799439012"
+      responses:
+        200:
+          description: Adopción creada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Pet adopted"
+        400:
+          description: Datos inválidos o mascota ya adoptada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Pet is already adopted"
+        404:
+          description: Usuario o mascota no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error: "Pet not found"
+        500:
+          description: Error en el servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

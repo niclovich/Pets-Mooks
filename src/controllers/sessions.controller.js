@@ -37,10 +37,15 @@ const login = async (req, res) => {
 }
 
 const current = async(req,res) =>{
-    const cookie = req.cookies['coderCookie']
-    const user = jwt.verify(cookie,'tokenSecretJWT');
-    if(user)
-        return res.send({status:"success",payload:user})
+    const cookie = req.cookies['coderCookie'];
+    if(!cookie) return res.status(401).send({status:"error",error:"No token provided"});
+    try {
+        const user = jwt.verify(cookie,'tokenSecretJWT');
+        if(user)
+            return res.send({status:"success",payload:user})
+    } catch(error) {
+        return res.status(401).send({status:"error",error:"Invalid token"});
+    }
 }
 
 const unprotectedLogin  = async(req,res) =>{
@@ -54,10 +59,15 @@ const unprotectedLogin  = async(req,res) =>{
     res.cookie('unprotectedCookie',token,{maxAge:3600000}).send({status:"success",message:"Unprotected Logged in"})
 }
 const unprotectedCurrent = async(req,res)=>{
-    const cookie = req.cookies['unprotectedCookie']
-    const user = jwt.verify(cookie,'tokenSecretJWT');
-    if(user)
-        return res.send({status:"success",payload:user})
+    const cookie = req.cookies['unprotectedCookie'];
+    if(!cookie) return res.status(401).send({status:"error",error:"No token provided"});
+    try {
+        const user = jwt.verify(cookie,'tokenSecretJWT');
+        if(user)
+            return res.send({status:"success",payload:user})
+    } catch(error) {
+        return res.status(401).send({status:"error",error:"Invalid token"});
+    }
 }
 export default {
     current,

@@ -7,7 +7,10 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "test": "mocha test/supertest.test.js"
+    "test": "mocha test/pets.router.test.js --timeout 30000",
+    "test:users": "mocha test/users.router.test.js --timeout 30000",
+    "test:adoptions": "mocha test/adoption.router.test.js --timeout 30000",
+    "test:all": "mocha test/**/*.test.js --timeout 30000"
   },
   "keywords": [],
   "author": "",
@@ -16,15 +19,19 @@
     "@faker-js/faker": "^10.1.0",
     "bcrypt": "^5.1.0",
     "cookie-parser": "^1.4.6",
+    "dotenv": "^17.2.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.7.5",
     "multer": "^1.4.5-lts.1",
-    "supertest": "^6.3.3"
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
-    "chai": "^4.3.7",
-    "mocha": "^10.1.0",
-    "nodemon": "^3.1.11"
+    "chai": "^4.5.0",
+    "mocha": "^10.8.2",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.2.2"
   }
 }
